@@ -9,10 +9,11 @@ def print_pos(pose):
     print("I'm currently at %s" % pose)
 
 def go_to():
-    with pymorse.Morse() as simu:
+    with pymorse.Morse() as simu, Morse() as morse:
 
         # subscribes to updates from the Pose sensor by passing a callback
         #simu.mouse.pose.subscribe(print_pos)
+        nearObj = morse.mouse.proximity
 
         # sends a destination
         simu.mouse.motion.publish({'x' : 10.0, 'y': 5.0, 'z': 0.0,
@@ -25,10 +26,10 @@ def go_to():
 
 
         # waits until we reach the target
-            char = getch()
 
-            if (char == "p"):
-                go_three()
+            danger = near_robot(nearObj)
+            if danger == 1:
+               go_three()
 
             else:
                 simu.sleep(0.5)
@@ -46,7 +47,11 @@ def go_three():
 
         mousePose = morse.mouse.mousePose
 
+        nearObj = morse.mouse.proximity
+
         mousePosition = where_is(mousePose)
+
+        print(near_robot(nearObj))
 
         destination = go_where(mousePosition)
 
@@ -71,25 +76,9 @@ def go_three():
         go_to()
 
 def go_where(mousePosition):
-
     pos1 = {'x' : 50.0, 'y': 20.0, 'z': 0.0, 'tolerance' : 0.5, 'speed' : 4.0}
-
     pos2 = {'x' : -50.0, 'y': -20.0, 'z': 0.0, 'tolerance' : 0.5, 'speed' : 4.0}
-
     pos3 = {'x' : 25.0, 'y': -20.0, 'z': 0.0, 'tolerance' : 0.5, 'speed' : 4.0}
-
-
-    """if{mousePosition['x'] - pos1['x']} < {mousePosition['x'] - pos2['x']} and {mousePosition['y'] - pos1['y']} < {mousePosition['y'] - pos2['y']} and\
-        {mousePosition['x'] - pos1['x']} < {mousePosition['x'] - pos3['x']} and {mousePosition['y'] - pos1['y']} < {mousePosition['y'] - pos3['y']}:
-        optdist = pos1
-
-    elif{mousePosition['x'] - pos2['x']} < {mousePosition['x'] - pos1['x']} and {mousePosition['y'] - pos2['y']} < {mousePosition['y'] - pos1['y']} and\
-        {mousePosition['x'] - pos2['x']} < {mousePosition['x'] - pos3['x']} and {mousePosition['y'] - pos2['y']} < {mousePosition['y'] - pos3['y']}:
-        optdist = pos2
-
-    elif{mousePosition['x'] - pos3['x']} < {mousePosition['x'] - pos1['x']} and {mousePosition['y'] - pos3['y']} < {mousePosition['y'] - pos1['y']} and\
-        {mousePosition['x'] - pos3['x']} < {mousePosition['x'] - pos2['x']} and {mousePosition['y'] - pos3['y']} < {mousePosition['y'] - pos2['y']}:
-        optdist = pos3"""
 
     distance1 = math.sqrt(sum([(mousePosition['x'] - pos1['x']) ** 2 + (mousePosition['y'] - pos1['y']) ** 2]))
     distance2 = math.sqrt(sum([(mousePosition['x'] - pos2['x']) ** 2 + (mousePosition['y'] - pos2['y']) ** 2]))
@@ -97,19 +86,11 @@ def go_where(mousePosition):
 
     if distance1 < distance2 and distance1 < distance3:
         optdist = pos1
-
     if distance2 < distance1 and distance2 < distance3:
         optdist = pos2
-
     if distance3 < distance1 and distance3 < distance2:
         optdist = pos3
-
-
-    """else:
-        optdist = pos1"""
-
     print("I'm going to %s" % optdist)
-
     return optdist
 
 def getch():
@@ -130,6 +111,16 @@ def where_is(agentPose_stream):
     pose = agentPose_stream.get()
 
     return pose
+
+def near_robot(agentProximity_stream):
+    """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
+    pose = agentProximity_stream.get()
+    ind = pose['near_robots']
+    if not ind:
+        return 0
+    else:
+        item = ind['cat']
+        return 1
 
 
 def main():
