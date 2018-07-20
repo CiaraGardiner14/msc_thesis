@@ -22,14 +22,19 @@ def go_to():
 
         # Leave a couple of millisec to the simulator to start the action
         simu.sleep(0.1)
+        curr = 0
         while simu.mouse.motion.get_status() != "Arrived":
-
-
         # waits until we reach the target
 
-            danger = near_robot(nearObj)
-            if danger == 1:
-               go_three()
+            prev = curr
+            curr = near_robot(nearObj)
+            if (prev-curr<15 and prev is not 0 and curr is not 0):
+                simu.sleep(0.5)
+                go_three()
+
+            elif (curr and curr < 10):
+                simu.sleep(0.5)
+                go_three()
 
             else:
                 simu.sleep(0.5)
@@ -116,11 +121,13 @@ def near_robot(agentProximity_stream):
     """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
     pose = agentProximity_stream.get()
     ind = pose['near_robots']
+    # ind2 = pose['timestamp']
+
     if not ind:
         return 0
     else:
         item = ind['cat']
-        return 1
+        return item
 
 
 def main():
