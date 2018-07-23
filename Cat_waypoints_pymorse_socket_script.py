@@ -9,7 +9,7 @@ from pymorse import Morse
 
 
 """ The minimal distance to maintain between the mouse and the cat. """
-minDist = 5.0
+minDist = 0.0
 
 """ The height for the flying cat. """
 # NB: this is the absolute height not the one relative to the ground...

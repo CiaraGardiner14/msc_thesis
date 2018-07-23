@@ -28,13 +28,22 @@ def go_to():
 
             prev = curr
             curr = near_robot(nearObj)
-            if (prev-curr<15 and prev is not 0 and curr is not 0):
+
+            print(prev)
+            print(curr)
+
+            if (prev-curr>10 and curr<20 and prev is not 0 and curr is not 0):
+                print("Too fast")
                 simu.sleep(0.5)
                 go_three()
 
-            elif (curr and curr < 10):
+            elif (curr and 1 < curr < 10):
+                print("Too close")
                 simu.sleep(0.5)
                 go_three()
+
+            elif(curr and curr < 1):
+                print("CAPTURE")
 
             else:
                 simu.sleep(0.5)
@@ -56,8 +65,6 @@ def go_three():
 
         mousePosition = where_is(mousePose)
 
-        print(near_robot(nearObj))
-
         destination = go_where(mousePosition)
 
         simu.mouse.motion.publish(destination)
@@ -74,6 +81,12 @@ def go_three():
 
         # waits until we reach the target
         while simu.mouse.motion.get_status() != "Arrived":
+
+            curr = near_robot(nearObj)
+
+            if(curr and curr < 1):
+                print("CAPTURE")
+
             simu.sleep(0.5)
 
         print("Here we are!")
