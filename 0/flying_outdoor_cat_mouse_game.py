@@ -38,6 +38,12 @@ keyb = Keyboard()
 keyb.properties(Speed=4.0)
 mouse.append(keyb)
 
+collision = Collision()
+collision.translate(x=0.3, z=0.05)
+collision.rotate(x=+0.2)
+mouse.append(collision)
+collision.add_interface('socket')
+
 proximity = Proximity()
 proximity.translate(x=0.3, z=0.05)
 proximity.rotate(x=+0.2)

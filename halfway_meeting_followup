@@ -1,0 +1,24 @@
+Fixed:
+Environment
+Refuge time
+Refuge locations
+Refuge caluclation
+Energy levels of bot and drone
+Flight distance
+Start and end points
+Reassessment rates....
+Scanning distance
+
+Variables:
+High or low energy
+Fleeing distance
+
+Risk level assessment:
+How close is drone
+Are they moving towards
+How low are battery levels
+How low can they get on this mission
+
+Ground-based delivery robot equipped with risk-based triggering have the strongest chances of self-preservation when being pursued by an air-borne drone if they are capable of accurately assessing the risk levels of a given situation and continuously dynamically reassessing the interaction throughout.
+
+The most effective means by which a delivery robot can avoid capture and achieve their goal is by combining fleeing with refuge seeking during their escape.

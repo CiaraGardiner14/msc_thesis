@@ -1,3 +1,6 @@
+#Cautious mouse. Moves when dron eis closer than 30m and hides until drone is gone
+
+
 import pymorse
 import sys, termios, tty, os, time
 import math
@@ -16,6 +19,7 @@ def go_to():
         mousePose = morse.mouse.mousePose
 
 
+
         # sends a destination
         simu.mouse.motion.publish({'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
                                   'tolerance' : 0.5,
@@ -27,25 +31,11 @@ def go_to():
         while simu.mouse.motion.get_status() != "Arrived":
         # waits until we reach the target
             mousePosition = where_is(mousePose)
-            print_pos(mousePosition)
 
             prev = curr
             curr = near_robot(nearObj)
-            #bat_lev = battery_life(bat)
-##################tests##################################
-            #print("Battery: %s" % bat_lev)
-            #print(prev)
-            #print(curr)
-#################tests###################################
 
-            if (prev-curr>10 and curr<20 and prev is not 0 and curr is not 0):
-                ######tests######
-                print("Too fast")
-                ######tests######
-                simu.sleep(0.5)
-                go_three()
-
-            elif (curr and 1 < curr < 10):
+            if (curr and 1 < curr < 30):
                 ######tests######
                 print("Too close")
                 ######tests######
@@ -54,7 +44,6 @@ def go_to():
 
             else:
                 simu.sleep(0.5)
-
 
         print("Here we are!")
 
@@ -75,27 +64,28 @@ def go_three():
 
         simu.mouse.motion.publish(destination)
 
-        simu.sleep(20)
+        while nearObj:
+            simu.sleep()
 
-        # sends a destination
-        simu.mouse.motion.publish({'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
-                                  'tolerance' : 0.5,
-                                  'speed' : 4.0})
-
-        # Leave a couple of millisec to the simulator to start the action
-        simu.sleep(0.1)
-
-        # waits until we reach the target
-        while simu.mouse.motion.get_status() != "Arrived":
-
-            curr = near_robot(nearObj)
-
-            if(curr and curr < 1):
-                print("CAPTURE")
-
-            simu.sleep(0.5)
-
-        print("Here we are!")
+        # # sends a destination
+        # simu.mouse.motion.publish({'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
+        #                           'tolerance' : 0.5,
+        #                           'speed' : 4.0})
+        #
+        # # Leave a couple of millisec to the simulator to start the action
+        # simu.sleep(0.1)
+        #
+        # # waits until we reach the target
+        # while simu.mouse.motion.get_status() != "Arrived":
+        #
+        #     curr = near_robot(nearObj)
+        #
+        #     if(curr and curr < 1):
+        #         print("CAPTURE")
+        #
+        #     simu.sleep(0.5)
+        #
+        # print("Here we are!")
 
         go_to()
 
@@ -117,24 +107,13 @@ def go_where(mousePosition):
     print("I'm going to %s" % optdist)
     return optdist
 
-def getch():
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(sys.stdin.fileno())
-        ch = sys.stdin.read(1)
-
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return ch
-
-button_delay = 0.2
 
 def where_is(agentPose_stream):
     """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
     pose = agentPose_stream.get()
 
     return pose
+
 
 def near_robot(agentProximity_stream):
     """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """

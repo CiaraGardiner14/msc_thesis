@@ -1,0 +1,21 @@
+To do:
+
+Change points of origin and end goal
+
+Capture message
+
+Relocate hiding points
+
+Bash script
+
+Output result
+
+
+Issues:
+
+Robot flying
+
+Drone crashing
+
+
+Energy conservation (high priority vs low priority jobs) low energy hide and wait, high energy run a lot

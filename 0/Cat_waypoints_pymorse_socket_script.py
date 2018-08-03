@@ -52,7 +52,7 @@ def frighten_mouse():
                             }
 
                 # look at the mouse
-                if((catPosition['y'] - mousePosition['y']) < 1 and (catPosition['x'] - mousePosition['x']) < 1 and is_hiding(mousePosition) = False):
+                if(how_far(catPosition['y'], mousePosition['y'], catPosition['x'], mousePosition['x']) == True and is_hiding(mousePosition) == False):
                     is_free = False
                     print("CAPTURE")
                     #print("%s" % is_free)
@@ -74,6 +74,15 @@ def battery_life(agentBattery_stream):
     set = agentBattery_stream.get()
     charge = set['charge']
     return charge
+
+def how_far(mouse_y, cat_y, mouse_x, cat_x):
+
+    distance1 = math.sqrt(sum([(cat_x - mouse_x) ** 2 + (mouse_y - cat_y) ** 2]))
+
+    if distance1 < 0.1:
+        return True
+    else:
+        return False
 
 def is_hiding(pose):
     pos1 = {'x' : 49.0, 'y': 17.0, 'z': 0.0, 'tolerance' : 0.5, 'speed' : 4.0}
