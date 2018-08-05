@@ -52,13 +52,13 @@ proximity.properties(track = "drone", range = 50)
 #proximity.add_interface('text')
 proximity.add_interface('socket')
 
-mousePose = Pose()
-mouse.append(mousePose)
-mousePose.add_stream('socket')
-
 motion = Waypoint()
 motion.add_interface('socket')
 mouse.append(motion)
+
+mousePose = Pose()
+mouse.append(mousePose)
+mousePose.add_stream('socket')
 
 mouse_battery = Battery()
 mouse_battery.translate(x=0.3, z=-0.05)

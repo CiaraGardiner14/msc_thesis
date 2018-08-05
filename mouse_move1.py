@@ -14,10 +14,13 @@ def print_pos(pose):
 def go_to():
     with pymorse.Morse() as simu, Morse() as morse:
 
-        #subscribes to updates from the Pose sensor by passing a callback
+        # subscribes to updates from the Pose sensor by passing a callback
         nearObj = morse.mouse.proximity
         mousePose = morse.mouse.mousePose
-        mouseColl = morse.mouse.collision
+        #mouseColl = morse.mouse.collision
+        #mouseOrient = morse.mouse.orientation
+
+
 
         # sends a destination
         simu.mouse.motion.publish({'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
@@ -31,13 +34,9 @@ def go_to():
         # waits until we reach the target
             mousePosition = where_is(mousePose)
 
-            if(is_collision(mouseColl) != 0):
-                #avoid_col(mousePosition)
-                #go_to()
-                simu.mouse.motion.publish({'x' : mousePosition['x']-1, 'y': mousePosition['y']-2, 'z': mousePosition['z'],
-                                           'tolerance' : 0.5,
-                                           'speed' : 1.0})
-                go_to()
+            #if(is_collision(mouseColl) != 0):
+                #mouseOrient.set_property(yaw, 1)
+             #   print("1")
 
             prev = curr
             curr = near_robot(nearObj)
@@ -66,8 +65,9 @@ def go_three():
         bat = morse.mouse.mouse_battery
 
         mousePosition = where_is(mousePose)
+
         destination = go_where(mousePosition)
-        battery = battery_life(bat)
+
         simu.mouse.motion.publish(destination)
 
         cnt = 0
@@ -96,15 +96,6 @@ def go_where(mousePosition):
     print("I'm going to %s" % optdist)
     return optdist
 
-# def avoid_col(mousePosition):
-#     with pymorse.Morse() as simu, Morse() as morse:
-#         avoid = {'x' : mousePosition['x']-1, 'y': mousePosition['y']-2, 'z': mousePosition['z'],
-#                                    'tolerance' : 0.5,
-#                                    'speed' : 1.0}
-#
-#         simu.mouse.motion(avoid)
-
-
 def getch():
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
@@ -125,15 +116,15 @@ def where_is(agentPose_stream):
 
     return pose
 
-def is_collision(agentCollision_stream):
-   """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
-   pose = agentCollision_stream.get()
-   objects = pose['objects']
-   objects = objects.split(',')
-   if (len(objects) <= 1):
-       return 0
-   else:
-       return objects[1]
+#def is_collision(agentCollision_stream):
+ #   """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
+  #  pose = agentCollision_stream.get()
+   # objects = pose['objects']
+    #objects = objects.split(',')
+ #   if (len(objects) <= 1):
+  #      return 0
+   # else:
+    #    return objects[1]
 
 
 def near_robot(agentProximity_stream):
@@ -148,11 +139,11 @@ def near_robot(agentProximity_stream):
         item = ind['cat']
         return item
 
-def battery_life(agentBattery_stream):
-   """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
-   set = agentBattery_stream.get()
-   charge = set['charge']
-   return charge
+#def battery_life(agentBattery_stream):
+ #   """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
+  #  set = agentBattery_stream.get()
+   # charge = set['charge']
+    #return charge
 
 
 def main():
