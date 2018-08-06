@@ -1,4 +1,4 @@
-#Cautious mouse. Moves when dron eis closer than 30m and hides until drone is gone
+#Cautious mouse. Moves when drone is closer than 30m and hides until drone is gone
 
 
 import pymorse
@@ -8,78 +8,81 @@ from pymorse import Morse
 
 from morse.builder import *
 
-def print_pos(pose):
-    print("I'm currently at %s" % pose)
-
-def go_to():
+def main():
+    print("Test")
     with pymorse.Morse() as simu, Morse() as morse:
-
-        #subscribes to updates from the Pose sensor by passing a callback
-        nearObj = morse.mouse.proximity
+        """ Main behaviour """
         mousePose = morse.mouse.mousePose
-        mouseColl = morse.mouse.collision
+        motion = morse.mouse.motion
+        destination = set_pos(simu, morse)
+        #myStack = Stack()
+        waypoint = destination
+        motion.publish(waypoint)
+        while True:
+            mousePosition = where_is(mousePose)
+            while(mousePosition != destination) :
+                # if is_collision(simu, morse) == True:
+                #     motion.publish({'x' : mousePosition['x']-1, 'y': mousePosition['y']-2, 'z': mousePosition['z'],
+                #                                'tolerance' : 0.5,
+                #                                'speed' : 1.0})
+                if(check_objs(simu, morse) == 1):
+                    motion.publish(go_where(mousePosition))
+                time.sleep(10)
+                motion.publish(destination)
+                # time.sleep(10)
+                #check_obs(simu, morse)
+
+                    # go_three(simu, morse)
+                    # print("stuck in if")
+            print("Here we are!")
+
+def set_pos(simu, morse):
 
         # sends a destination
-        simu.mouse.motion.publish({'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
+    destination = {'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
                                   'tolerance' : 0.5,
-                                  'speed' : 1.0})
-
+                                  'speed' : 2.0}
         # Leave a couple of millisec to the simulator to start the action
-        simu.sleep(0.1)
-        curr = 0
-        while simu.mouse.motion.get_status() != "Arrived":
-        # waits until we reach the target
-            mousePosition = where_is(mousePose)
+    return destination
 
-            if(is_collision(mouseColl) != 0):
-                #avoid_col(mousePosition)
-                #go_to()
-                simu.mouse.motion.publish({'x' : mousePosition['x']-1, 'y': mousePosition['y']-2, 'z': mousePosition['z'],
-                                           'tolerance' : 0.5,
-                                           'speed' : 1.0})
-                go_to()
+def check_objs(simu, morse):
+    nearObj = morse.mouse.proximity
+    curr = near_robot(nearObj)
+    if (curr and 1 < curr < 30):
+        return 1
+    else:
+        return 0
 
-            prev = curr
-            curr = near_robot(nearObj)
+# def go_three(simu, morse):
+#
+#     #Fleeing reaction called when p button hit
+#     mousePose = morse.mouse.mousePose
+#     nearObj = morse.mouse.proximity
+#     bat = morse.mouse.mouse_battery
+#     mousePosition = where_is(mousePose)
+#     destination = go_where(mousePosition)
+#     battery = battery_life(bat)
+#     morse.mouse.motion.publish(destination)
+#     cnt = 0
+#     # while nearObj:
+#     #     cnt+1
+#     return
 
-            if (curr and 1 < curr < 30):
-                ######tests######
-                print("Too close")
-                ######tests######
-                simu.sleep(0.5)
-                go_three()
-
-            else:
-                simu.sleep(0.5)
-
-        print("Here we are!")
-
-def go_three():
-
-    #Fleeing reaction called when p button hit
-    with pymorse.Morse() as simu, Morse() as morse:
-
-        # subscribes to updates from the Pose sensor by passing a callback
-
-        mousePose = morse.mouse.mousePose
-        nearObj = morse.mouse.proximity
-        bat = morse.mouse.mouse_battery
-
-        mousePosition = where_is(mousePose)
-        destination = go_where(mousePosition)
-        battery = battery_life(bat)
-        simu.mouse.motion.publish(destination)
-
-        cnt = 0
-
-        while nearObj:
-            cnt+1
-            print(cnt)
-
-        go_to()
+# def is_collision(simu, morse):
+#     mouseColl = morse.mouse.collision
+#     pose = mouseColl.get()
+#     objects = pose['objects']
+#     objects = objects.split(',')
+#     if (len(objects) <= 1):
+#         return False
+#     else:
+#         return True
+#
+# def avoid_col(simu, morse, mousePosition):
+#     simu.mouse.motion.goto(2.5, 0, 0)
 
 def go_where(mousePosition):
-    pos1 = {'x' : 49.0, 'y': 17.0, 'z': 0.0, 'tolerance' : 0.5, 'speed' : 4.0}
+    pos1 = {'x' : 43.4794807434082, 'y': 0.876022458076477, 'z': 0.08955984562635422, 'tolerance' : 0.5, 'speed' : 4.0}
     pos2 = {'x' : -22.46, 'y': -20.0, 'z': 0.0, 'tolerance' : 0.5, 'speed' : 4.0}
     pos3 = {'x' : 10.48, 'y': 58.73, 'z': 0.0, 'tolerance' : 0.5, 'speed' : 4.0}
 
@@ -95,15 +98,6 @@ def go_where(mousePosition):
         optdist = pos3
     print("I'm going to %s" % optdist)
     return optdist
-
-# def avoid_col(mousePosition):
-#     with pymorse.Morse() as simu, Morse() as morse:
-#         avoid = {'x' : mousePosition['x']-1, 'y': mousePosition['y']-2, 'z': mousePosition['z'],
-#                                    'tolerance' : 0.5,
-#                                    'speed' : 1.0}
-#
-#         simu.mouse.motion(avoid)
-
 
 def getch():
     fd = sys.stdin.fileno()
@@ -125,16 +119,6 @@ def where_is(agentPose_stream):
 
     return pose
 
-def is_collision(agentCollision_stream):
-   """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
-   pose = agentCollision_stream.get()
-   objects = pose['objects']
-   objects = objects.split(',')
-   if (len(objects) <= 1):
-       return 0
-   else:
-       return objects[1]
-
 
 def near_robot(agentProximity_stream):
     """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
@@ -154,11 +138,8 @@ def battery_life(agentBattery_stream):
    charge = set['charge']
    return charge
 
-
-def main():
-    """ Main behaviour """
-    while True:
-        go_to()
+def print_pos(pose):
+    print("I'm currently at %s" % pose)
 
 if __name__ == "__main__":
     main()
