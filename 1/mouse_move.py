@@ -1,87 +1,81 @@
-#Cautious mouse. Moves when dron eis closer than 30m and hides until drone is gone
+#Cautious mouse. Moves when drone is closer than 30m and hides until drone is gone
 
 
 import pymorse
-import sys, termios, tty, os, time
+import sys, termios, tty, os, time, datetime
 import math
 from pymorse import Morse
-
 from morse.builder import *
 
-def print_pos(pose):
-    print("I'm currently at %s" % pose)
-
-def go_to():
+def main():
+    print("Test")
     with pymorse.Morse() as simu, Morse() as morse:
-
-        #subscribes to updates from the Pose sensor by passing a callback
-        nearObj = morse.mouse.proximity
+        """ Main behaviour """
         mousePose = morse.mouse.mousePose
-        mouseColl = morse.mouse.collision
-
-        # sends a destination
-        simu.mouse.motion.publish({'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
-                                  'tolerance' : 0.5,
-                                  'speed' : 1.0})
-
-        # Leave a couple of millisec to the simulator to start the action
-        simu.sleep(0.1)
-        curr = 0
-        while simu.mouse.motion.get_status() != "Arrived":
-        # waits until we reach the target
-            mousePosition = where_is(mousePose)
-
-            if(is_collision(mouseColl) != 0):
-                #avoid_col(mousePosition)
-                #go_to()
-                simu.mouse.motion.publish({'x' : mousePosition['x']-1, 'y': mousePosition['y']-2, 'z': mousePosition['z'],
-                                           'tolerance' : 0.5,
-                                           'speed' : 1.0})
-                go_to()
-
-            prev = curr
-            curr = near_robot(nearObj)
-
-            if (curr and 1 < curr < 30):
-                ######tests######
-                print("Too close")
-                ######tests######
-                simu.sleep(0.5)
-                go_three()
-
-            else:
-                simu.sleep(0.5)
-
-        print("Here we are!")
-
-def go_three():
-
-    #Fleeing reaction called when p button hit
-    with pymorse.Morse() as simu, Morse() as morse:
-
-        # subscribes to updates from the Pose sensor by passing a callback
-
-        mousePose = morse.mouse.mousePose
-        nearObj = morse.mouse.proximity
+        motion = morse.mouse.motion
+        destination = set_pos(simu, morse)
+        start = time.time()
         bat = morse.mouse.mouse_battery
+        waypoint = destination
+        motion.publish(waypoint)
+        first_attack = True
+        while motion.get_status()!= 'Arrived':
+            print_res(bat, start)
+            mousePosition = where_is(mousePose)
+            if(check_speed(simu, morse) == 1 and check_hide(simu, morse) != 1 and first_attack == True):
+                print("running")
+                destination = {'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
+                                              'tolerance' : 0.5,'speed': 4.0}
+            elif(check_hide(simu, morse) == 1 and first_attack == True):
+                print("hiding")
+                motion.publish(go_where(mousePosition))
+                first_attack = False
+                for i in range(30):
+                    time.sleep(1)
+                    print_res(bat, start)
+            elif(check_speed(simu, morse) == 1 and first_attack == False):
+                print("Running 2")
+                # motion.publish({'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
+                #                               'tolerance' : 0.5,
+                #                               'speed' : 4.0})
 
-        mousePosition = where_is(mousePose)
-        destination = go_where(mousePosition)
-        battery = battery_life(bat)
-        simu.mouse.motion.publish(destination)
+            motion.publish(destination)
+        print("Here we are!")
+        print_res(bat, start)
 
-        cnt = 0
+def set_pos(simu, morse):
+    destination = {'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
+                                  'tolerance' : 0.5,
+                                  'speed' : 2.0}
+    return destination
 
-        while nearObj:
-            cnt+1
-            print(cnt)
+def print_res(bat, start):
+    battery_level = battery_life(bat)
+    print(battery_level)
+    end = time.time()
+    time_taken = end - start
+    print(time_taken)
 
-        go_to()
+def check_speed(simu, morse):
+    nearObj = morse.mouse.proximity
+    curr = near_robot(nearObj)
+    if (curr and 1 < curr < 30):
+        return 1
+    else:
+        return 0
+
+def check_hide(simu, morse):
+    nearObj = morse.mouse.proximity
+    curr = near_robot(nearObj)
+    if (curr and 1 < curr < 10):
+        return 1
+    else:
+        return 0
 
 def go_where(mousePosition):
     pos1 = {'x' : 43.4794807434082, 'y': 0.876022458076477, 'z': 0.08955984562635422, 'tolerance' : 0.5, 'speed' : 4.0}
-    pos2 = {'x' : -22.46, 'y': -20.0, 'z': 0.0, 'tolerance' : 0.5, 'speed' : 4.0}
-    pos3 = {'x' : 10.48, 'y': 58.73, 'z': 0.0, 'tolerance' : 0.5, 'speed' : 4.0}
+    pos2 = {'x' : -38.12936019897461, 'y': -42.35550308227539, 'z': 4.007661819458008, 'tolerance' : 0.5, 'speed' : 4.0}
+    pos3 = {'x': -42.76996612548828, 'y': 56.309364318847656, 'z': 0.5312402248382568, 'tolerance' : 0.5, 'speed' : 4.0}
 
     distance1 = math.sqrt(sum([(mousePosition['x'] - pos1['x']) ** 2 + (mousePosition['y'] - pos1['y']) ** 2]))
     distance2 = math.sqrt(sum([(mousePosition['x'] - pos2['x']) ** 2 + (mousePosition['y'] - pos2['y']) ** 2]))
@@ -96,15 +90,6 @@ def go_where(mousePosition):
     print("I'm going to %s" % optdist)
     return optdist
 
-# def avoid_col(mousePosition):
-#     with pymorse.Morse() as simu, Morse() as morse:
-#         avoid = {'x' : mousePosition['x']-1, 'y': mousePosition['y']-2, 'z': mousePosition['z'],
-#                                    'tolerance' : 0.5,
-#                                    'speed' : 1.0}
-#
-#         simu.mouse.motion(avoid)
-
-
 def getch():
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
@@ -118,30 +103,16 @@ def getch():
 
 button_delay = 0.2
 
-
 def where_is(agentPose_stream):
     """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
     pose = agentPose_stream.get()
 
     return pose
 
-def is_collision(agentCollision_stream):
-   """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
-   pose = agentCollision_stream.get()
-   objects = pose['objects']
-   objects = objects.split(',')
-   if (len(objects) <= 1):
-       return 0
-   else:
-       return objects[1]
-
-
 def near_robot(agentProximity_stream):
     """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """
     pose = agentProximity_stream.get()
     ind = pose['near_robots']
-    # ind2 = pose['timestamp']
-
     if not ind:
         return 0
     else:
@@ -154,11 +125,8 @@ def battery_life(agentBattery_stream):
    charge = set['charge']
    return charge
 
-
-def main():
-    """ Main behaviour """
-    while True:
-        go_to()
+def print_pos(pose):
+    print("I'm currently at %s" % pose)
 
 if __name__ == "__main__":
     main()

@@ -10,6 +10,7 @@ cat.properties(Type = "drone", Label = "mal_drone")
 
 # Waypoint controller (x,y,z, yaw and tolerance (default is 0.2))
 waypoint = RotorcraftWaypoint()
+waypoint.properties(RemainAtDestination=True)
 cat.append(waypoint)
 waypoint.add_stream('socket')
 
@@ -31,7 +32,7 @@ cat_battery.add_stream('socket')
 
 """ mouse (atrv)"""
 mouse = ATRV()
-mouse.translate (x=51.0,y=-59, z=0.6)
+mouse.translate (x=28.5,y=-63, z=0.6)
 mouse.rotate(z=0.70*pi)
 
 keyb = Keyboard()

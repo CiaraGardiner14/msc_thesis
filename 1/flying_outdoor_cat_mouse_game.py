@@ -4,12 +4,13 @@ from math import pi
 
 """ Cat (Quadrotor) """
 cat = Quadrotor()
-cat.translate(x=-51.0, z=1.0)
+cat.translate(x=-51.0, z=5.0)
 cat.rotate(z=pi/3)
-cat.properties(Type = "drone", Label = "mal_drone")
+cat.properties(Type = "drone", Label = "mal_drone", NoGravity = True)
 
 # Waypoint controller (x,y,z, yaw and tolerance (default is 0.2))
-waypoint = RotorcraftWaypoint()
+waypoint = Waypoint()
+waypoint.properties(FreeZ = True)
 cat.append(waypoint)
 waypoint.add_stream('socket')
 
@@ -31,7 +32,7 @@ cat_battery.add_stream('socket')
 
 """ mouse (atrv)"""
 mouse = ATRV()
-mouse.translate (x=51.0,y=-59, z=0.6)
+mouse.translate (x=28.5,y=-63, z=0.6)
 mouse.rotate(z=0.70*pi)
 
 keyb = Keyboard()
