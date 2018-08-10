@@ -2,7 +2,7 @@
 
 
 import pymorse
-import sys, termios, tty, os, time
+import sys, termios, tty, os, time, datetime
 import math
 from pymorse import Morse
 from morse.builder import *
@@ -15,15 +15,21 @@ def main():
         motion = morse.mouse.motion
         nearObj = morse.mouse.proximity
         destination = set_pos(simu, morse)
+        start = time.time()
+        bat = morse.mouse.mouse_battery
         waypoint = destination
         motion.publish(waypoint)
+        first_attack = True
         while motion.get_status()!= 'Arrived':
+            print_res(bat, start)
             mousePosition = where_is(mousePose)
             while(near_robot(nearObj) == 1):
                 motion.publish(go_where(mousePosition))
-            time.sleep(10)
+                time.sleep(1)
+                print_res(bat, start)
             motion.publish(destination)
         print("Here we are!")
+        print_res(bat, start)
 
 def set_pos(simu, morse):
     destination = {'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
@@ -31,13 +37,28 @@ def set_pos(simu, morse):
                                   'speed' : 2.0}
     return destination
 
-# def check_objs(simu, morse):
-#     nearObj = morse.mouse.proximity
-#     curr = near_robot(nearObj)
-#     if (curr and curr == 1):
-#         return 1
-#     else:
-#         return 0
+def print_res(bat, start):
+    battery_level = battery_life(bat)
+    print(battery_level)
+    end = time.time()
+    time_taken = end - start
+    print(time_taken)
+
+def check_speed(simu, morse):
+    nearObj = morse.mouse.proximity
+    curr = near_robot(nearObj)
+    if (curr and 1 < curr < 30):
+        return 1
+    else:
+        return 0
+
+def check_hide(simu, morse):
+    nearObj = morse.mouse.proximity
+    curr = near_robot(nearObj)
+    if (curr and 1 < curr < 10):
+        return 1
+    else:
+        return 0
 
 def go_where(mousePosition):
     pos1 = {'x' : 43.4794807434082, 'y': 0.876022458076477, 'z': 0.08955984562635422, 'tolerance' : 0.5, 'speed' : 4.0}
@@ -54,8 +75,21 @@ def go_where(mousePosition):
         optdist = pos2
     if distance3 < distance1 and distance3 < distance2:
         optdist = pos3
-    # print("I'm going to %s" % optdist)
+    print("I'm going to %s" % optdist)
     return optdist
+
+def getch():
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        ch = sys.stdin.read(1)
+
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ch
+
+button_delay = 0.2
 
 def where_is(agentPose_stream):
     """ Read data from the [mouse|cat] pose sensor, and determine the position of the agent """

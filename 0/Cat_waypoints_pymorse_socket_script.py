@@ -13,7 +13,7 @@ from morse.builder import *
 
 
 """ The minimal distance to maintain between the mouse and the cat. """
-minDist = 0.0
+minDist = 0.05
 
 """ The height for the flying cat. """
 # NB: this is the absolute height not the one relative to the ground...
@@ -34,10 +34,12 @@ def frighten_mouse():
     with pymorse.Morse() as simu, Morse() as morse:
         catPose = morse.cat.catPose
         mousePose = morse.mouse.mousePose
-        motion = morse.cat.waypoint
+        motion = simu.cat.waypoint
         bat = morse.cat.cat_battery
+        start = time.time()
         bat_lev = battery_life(bat)
         is_free = True
+        cnt = 0
         while (bat_lev > 50 and is_free == True):
             bat_lev = battery_life(bat)
             catPosition = where_is(catPose)
@@ -47,27 +49,39 @@ def frighten_mouse():
                 if(how_far(catPosition['y'], mousePosition['y'], catPosition['x'], mousePosition['x']) == True):
                     is_free = False
                     print("CAPTURE")
+                    print_res(bat_lev, start)
                 else:
-                    pursue_mouse(mousePosition['y'], mousePosition['x'], catPosition['y'], catPosition['x'], mousePosition['yaw'], catPosition['yaw'], motion)
+                    pursue_mouse(mousePosition['y'], mousePosition['x'], mousePosition['z'], mousePosition['yaw'], motion)
             else:
                 is_free = True
+
             # send the command through the socket
         catPosition = where_is(catPose)
-        motion.publish({"x":51.0, "y":-59, "z": height, "yaw": catPosition['yaw'], "tolerance": 0.5})
+        motion.publish({"x":51.0, "y":-59, "z": height, "yaw": catPosition['yaw'], "tolerance": 0.5, "speed": 5})
+        while(mousePosition['x'] != -6.363116264343262 or mousePosition['y'] != 45.8295783996582):
+            time.sleep(1)
+        print_res(bat_lev, start)
+
+def print_res(battery_level, start):
+    print(battery_level)
+    end = time.time()
+    time_taken = end - start
+    print(time_taken)
 
 
-def pursue_mouse(mouse_y, mouse_x, cat_y, cat_x, mouse_yaw, cat_yaw, motion):
-    waypoint = {    "x": mouse_x - minDist*math.cos(mouse_yaw), \
-                    "y": mouse_y - minDist*math.sin(mouse_yaw), \
+def pursue_mouse(mouse_y, mouse_x, mouse_z, mouse_yaw, motion):
+    waypoint = {    "x": mouse_x, \
+                    "y": mouse_y, \
                     "z": height, \
-                    "yaw": cat_yaw, \
-                    "tolerance": 0.1 \
+                    "yaw": mouse_yaw, \
+                    "tolerance": 0.02, \
+                    "speed": 5\
                 }
             #print("%s" % is_free)
-    if(mouse_x==cat_x):
-         waypoint['yaw']= math.sign(mouse_y-cat_y) * math.pi
-    else:
-        waypoint['yaw']= math.atan2(mouse_y-cat_y,mouse_x-cat_x)
+    # if(mouse_x==cat_x):
+    #      waypoint['yaw']= math.sign(mouse_y-cat_y) * math.pi
+    # else:
+    #     waypoint['yaw']= math.atan2(mouse_y-cat_y,mouse_x-cat_x)
     motion.publish(waypoint)
 
 
@@ -81,7 +95,7 @@ def how_far(mouse_y, cat_y, mouse_x, cat_x):
 
     distance1 = math.sqrt(sum([(cat_x - mouse_x) ** 2 + (mouse_y - cat_y) ** 2]))
 
-    if distance1 < 0.1:
+    if distance1 < 0.139:
         return True
     else:
         return False

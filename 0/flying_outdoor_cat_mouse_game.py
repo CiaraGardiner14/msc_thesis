@@ -4,13 +4,13 @@ from math import pi
 
 """ Cat (Quadrotor) """
 cat = Quadrotor()
-cat.translate(x=-51.0, z=1.0)
+cat.translate(x=-51.0, z=5.0)
 cat.rotate(z=pi/3)
-cat.properties(Type = "drone", Label = "mal_drone")
+cat.properties(Type = "drone", Label = "mal_drone", NoGravity = True)
 
 # Waypoint controller (x,y,z, yaw and tolerance (default is 0.2))
-waypoint = RotorcraftWaypoint()
-waypoint.properties(RemainAtDestination=True)
+waypoint = Waypoint()
+waypoint.properties(FreeZ = True)
 cat.append(waypoint)
 waypoint.add_stream('socket')
 
@@ -39,24 +39,6 @@ keyb = Keyboard()
 keyb.properties(Speed=4.0)
 mouse.append(keyb)
 
-# waypoint = Waypoint()
-# # waypoint.translate(<x>, <y>, <z>)
-# # waypoint.rotate(<rx>, <ry>, <rz>)
-# mouse.append(waypoint)
-# waypoint.add_interface('socket')
-
-# collision = Collision()
-# collision.translate(x=0.3, z=0.05)
-# collision.rotate(x=+0.2)
-# mouse.append(collision)
-# collision.add_interface('socket')
-
-# orientation = Orientation()
-# orientation.translate(x=0.3, z=0.05)
-# orientation.rotate(x=+0.2)
-# mouse.append(orientation)
-# orientation.add_interface('socket')
-
 proximity = Proximity()
 proximity.translate(x=0.3, z=0.05)
 proximity.rotate(x=+0.2)
@@ -65,13 +47,13 @@ proximity.properties(track = "drone", range = 50)
 #proximity.add_interface('text')
 proximity.add_interface('socket')
 
-motion = Waypoint()
-motion.add_interface('socket')
-mouse.append(motion)
-
 mousePose = Pose()
 mouse.append(mousePose)
 mousePose.add_stream('socket')
+
+motion = Waypoint()
+motion.add_interface('socket')
+mouse.append(motion)
 
 mouse_battery = Battery()
 mouse_battery.translate(x=0.3, z=-0.05)
