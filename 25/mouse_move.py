@@ -31,7 +31,7 @@ def main():
                 print("hiding")
                 motion.publish(go_where(mousePosition))
                 first_attack = False
-                for i in range(90):
+                for i in range(120):
                     time.sleep(1)
                     print_suc_res(bat, start, "HIDING")
             elif(check_speed(simu, morse) == 1 and first_attack == False):
