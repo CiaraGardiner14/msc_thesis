@@ -1,9 +1,8 @@
 #Cautious mouse. Moves when drone is closer than 30m and hides until drone is gone
-
-
 import pymorse
 import sys, termios, tty, os, time, datetime
 import math
+import csv
 from pymorse import Morse
 from morse.builder import *
 
@@ -29,7 +28,7 @@ def main():
                 print_res(bat, start)
             motion.publish(destination)
         print("Here we are!")
-        print_res(bat, start)
+        print_suc_res(bat, start)
 
 def set_pos(simu, morse):
     destination = {'x' : -6.363116264343262, 'y': 45.8295783996582, 'z': 0.0,
@@ -37,12 +36,33 @@ def set_pos(simu, morse):
                                   'speed' : 2.0}
     return destination
 
-def print_res(bat, start):
+def print_suc_res(bat, start):
+
     battery_level = battery_life(bat)
     print(battery_level)
     end = time.time()
     time_taken = end - start
     print(time_taken)
+
+    row = [battery_level, time_taken, "SUCCESS"]
+    with open('results.csv', 'a') as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerow(row)
+    csvFile.close()
+
+def print_res(bat, start):
+
+    battery_level = battery_life(bat)
+    print(battery_level)
+    end = time.time()
+    time_taken = end - start
+    print(time_taken)
+
+    row = [battery_level, time_taken]
+    with open('results.csv', 'a') as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerow(row)
+    csvFile.close()
 
 def check_speed(simu, morse):
     nearObj = morse.mouse.proximity
